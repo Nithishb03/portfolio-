@@ -1,0 +1,39 @@
+NITHISH
+Computer Science & Engineering | AI/ML
+RV College of Engineering, Bengaluru
+
+PROFILE
+Systems-minded software engineer building at the intersection of AI, backend
+engineering, infrastructure, and security. Seeking SDE, Full-Stack, Backend,
+Cloud-DevOps, or security-adjacent product roles.
+
+CORE STACK
+Python, C/C++, JavaScript, React, Tailwind, Framer Motion, Flask, FastAPI
+
+SELECTED PROJECTS
+
+Cyber-Physical Digital Twin
+RVCE final-year project. Built an I-beam crack detection pipeline using ANSYS
+FEM simulation, FFT signal processing, a PyTorch MLP, Flask API, React
+dashboard, and MATLAB backend.
+
+KrishiRAG
+Multilingual RAG farm-advisory assistant for Karnataka agriculture using
+Python, LangChain, FAISS, multilingual sentence-transformers, and FastAPI.
+Includes a safety gate for dangerous agrochemical queries.
+
+CodeMarket / Nebula
+Blockchain-based digital asset marketplace with RSA wallet identity, Docker
+sandbox engine, custom Proof-of-Work chain, and a Vite + React + Tailwind +
+Framer Motion interface.
+
+DePIN Carbon Verifier
+Four-tier decentralized carbon-credit system combining IoT telemetry, ONNX
+edge inference, EZKL ZK-SNARKs, Solidity contracts, and a Flask Oracle API.
+
+Windows Voice Assistant
+In progress. Gemini/Siri-style end-to-end voice assistant for Windows.
+
+SECURITY
+CTF practice on TryHackMe and HackTheBox. Interested in secure systems,
+cryptography, application security, and infrastructure reliability.
