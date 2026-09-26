@@ -16,8 +16,6 @@ const navItems = [
   ['resume', 'RESUME'],
 ];
 
-let projectsHeaderAnimationPlayed = false;
-
 const projects = [
   {
     number: '01',
@@ -217,11 +215,12 @@ function ProjectsHeader() {
   const headerRef = useRef(null);
   const reduced = useReducedMotion();
   const tag = '/ 3D — DESIGNED. DEBUGGED. DEPLOYED.';
-  const [typedTag, setTypedTag] = useState(() => (reduced || projectsHeaderAnimationPlayed ? tag : ''));
-  const [entered, setEntered] = useState(() => reduced || projectsHeaderAnimationPlayed);
+  const [typedTag, setTypedTag] = useState(reduced ? tag : '');
+  const [entered, setEntered] = useState(reduced);
+  const [run, setRun] = useState(0);
 
   useEffect(() => {
-    if (reduced || projectsHeaderAnimationPlayed) {
+    if (reduced) {
       setTypedTag(tag);
       setEntered(true);
       return undefined;
@@ -229,9 +228,14 @@ function ProjectsHeader() {
 
     let timer;
     const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      projectsHeaderAnimationPlayed = true;
-      observer.disconnect();
+      if (!entry.isIntersecting) {
+        window.clearInterval(timer);
+        return;
+      }
+      window.clearInterval(timer);
+      setEntered(false);
+      setTypedTag('');
+      setRun((current) => current + 1);
       let index = 0;
       timer = window.setInterval(() => {
         index += 1;
@@ -255,7 +259,7 @@ function ProjectsHeader() {
 
   return <div className="projects__header" ref={headerRef}>
     <div className="projects__eyebrow"><span className="projects__pulse" /><span>{typedTag}</span>{!reduced && typedTag.length < tag.length && <i className="projects__cursor" />}</div>
-    <div className="projects__intro"><h2 className="projects__heading"><motion.span className={`projects__line projects__line--solid ${entered && !reduced ? 'projects__line--glitch-one' : ''}`} {...reveal(0)}>DESIGNED<span className={`projects__period ${entered && !reduced ? 'projects__period--one' : ''}`}>.</span></motion.span><motion.span className={`projects__line projects__line--outline ${entered && !reduced ? 'projects__line--glitch-two' : ''}`} initial={reduced ? { opacity: 0 } : { clipPath: 'inset(0 100% 0 0)', WebkitTextStrokeColor: 'var(--text-muted)' }} animate={entered ? (reduced ? { opacity: 1 } : { clipPath: 'inset(0 0 0 0)', WebkitTextStrokeColor: 'var(--accent)' }) : {}} transition={{ duration: reduced ? 0.25 : 0.42, delay: reduced ? 0 : 0.12 }}>DEBUGGED.</motion.span><motion.span className={`projects__line projects__line--gradient ${entered && !reduced ? 'projects__line--glitch-three' : ''}`} {...reveal(0.24)}>DEPLOYED<span className={`projects__period ${entered && !reduced ? 'projects__period--three' : ''}`}>.</span></motion.span></h2><motion.p initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18 }} animate={entered ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.35, delay: reduced ? 0 : 0.86 }}>Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways to explore the stack behind each.</motion.p></div>
+    <div className="projects__intro"><h2 className="projects__heading" key={run}><motion.span className="projects__line projects__line--designed" {...reveal(0)}>DESIGNED<span className={`projects__status-dot ${entered && !reduced ? 'projects__status-dot--green' : ''}`} aria-hidden="true" /></motion.span><motion.span className="projects__line projects__line--debugged" {...reveal(0.55)}>DEBUGGED<span className={`projects__status-dot ${entered && !reduced ? 'projects__status-dot--amber' : ''}`} aria-hidden="true" /></motion.span><motion.span className="projects__line projects__line--deployed" {...reveal(1.1)}>DEPLOYED<span className={`projects__status-dot ${entered && !reduced ? 'projects__status-dot--cyan' : ''}`} aria-hidden="true" /></motion.span></h2><motion.p key={run} initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18 }} animate={entered ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.35, delay: reduced ? 0 : 1.72 }}>Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways to explore the stack behind each.</motion.p></div>
   </div>;
 }
 
