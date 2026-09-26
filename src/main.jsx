@@ -16,10 +16,6 @@ const navItems = [
   ['resume', 'RESUME'],
 ];
 
-function scrollToSection(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 const projects = [
   {
     number: '01',
@@ -140,34 +136,20 @@ function Preloader({ onDone }) {
   );
 }
 
-function MagneticButton({ children, href = '#projects', className = '' }) {
+function MagneticButton({ children, href = '#projects', className = '', onNavigate }) {
   const ref = useRef(null);
   const x = useMotionValue(0); const y = useMotionValue(0);
   const sx = useSpring(x, { stiffness: 260, damping: 18 }); const sy = useSpring(y, { stiffness: 260, damping: 18 });
   const move = (event) => { const rect = ref.current?.getBoundingClientRect(); if (!rect) return; x.set((event.clientX - (rect.left + rect.width / 2)) * 0.2); y.set((event.clientY - (rect.top + rect.height / 2)) * 0.2); };
   const target = href.replace('#', '');
-  return <motion.a ref={ref} href={href} className={`magnetic ${className}`} style={{ x: sx, y: sy }} onClick={(event) => { event.preventDefault(); scrollToSection(target); }} onMouseMove={move} onMouseLeave={() => { x.set(0); y.set(0); }}>{children}</motion.a>;
+  return <motion.a ref={ref} href={href} className={`magnetic ${className}`} style={{ x: sx, y: sy }} onClick={(event) => { event.preventDefault(); onNavigate?.(target); }} onMouseMove={move} onMouseLeave={() => { x.set(0); y.set(0); }}>{children}</motion.a>;
 }
 
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  const [active, setActive] = useState('home');
+function Nav({ active, onNavigate }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > window.innerHeight * 0.72);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    const sections = navItems.map(([id]) => document.getElementById(id)).filter(Boolean);
-    const observer = new IntersectionObserver((entries) => {
-      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (visible) setActive(visible.target.id);
-    }, { rootMargin: '-25% 0px -55% 0px', threshold: [0.1, 0.35, 0.65] });
-    sections.forEach((section) => observer.observe(section));
-    return () => { window.removeEventListener('scroll', onScroll); observer.disconnect(); };
-  }, []);
-  const navigate = (id) => { setMenuOpen(false); scrollToSection(id); };
-  return <nav className={`site-nav ${scrolled ? 'site-nav--scrolled' : ''}`} aria-label="Primary navigation">
-    <button className="nav-logo" onClick={() => navigate('home')} aria-label="Scroll to home">N<span>.</span></button>
+  const navigate = (id) => { setMenuOpen(false); onNavigate(id); };
+  return <nav className="site-nav site-nav--scrolled" aria-label="Primary navigation">
+    <button className="nav-logo" onClick={() => navigate('home')} aria-label="Go to home">N<span>.</span></button>
     <div className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
       {navItems.map(([id, label]) => <button key={id} className={active === id ? 'nav-link nav-link--active' : 'nav-link'} onClick={() => navigate(id)}>{label}{id === 'resume' && ' ↓'}</button>)}
     </div>
@@ -180,7 +162,7 @@ function Resume() {
   return <section className="resume section-shell" id="resume"><div className="section-tag">/ 005 — HANDOFF</div><div className="resume__layout"><h2>TAKE THE<br /><span className="outline">SOURCE.</span></h2><div><p>One page, no maze. Download the current resume for the fast version of what I build and where I am headed.</p><a className="magnetic resume-download" href="/Nithish-Resume.txt" download="Nithish-Resume.txt">DOWNLOAD RESUME <ArrowUpRight size={17} /></a></div></div></section>;
 }
 
-function Hero() {
+function Hero({ onNavigate }) {
   const reduced = useReducedMotion();
   const [identifier, setIdentifier] = useState(0);
   const identifiers = ['AI / ML ENGINEER', 'SECURITY-MINDED BUILDER', 'BACKEND SYSTEMS THINKER'];
@@ -199,9 +181,9 @@ function Hero() {
       <div className="hero__role-mask"><motion.div key="role" initial={reduced ? false : { y: '110%' }} animate={{ y: 0 }} transition={{ delay: reduced ? 0 : 0.68, duration: 0.7, ease: [0.76, 0, 0.24, 1] }}>FULL STACK DEVELOPER</motion.div></div>
       <div className="hero__identifier" aria-live="polite"><AnimatePresence mode="wait"><motion.span key={identifiers[identifier]} initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -14, opacity: 0 }} transition={{ duration: reduced ? 0.15 : 0.35 }}>{identifiers[identifier]}</motion.span></AnimatePresence></div>
       <p className="hero__pitch">I turn hard problems in <em>AI, infrastructure, and security</em> into systems people can actually use.</p>
-      <div className="hero__actions"><MagneticButton href="#projects">VIEW PROJECTS <ArrowUpRight size={17} /></MagneticButton><MagneticButton href="#resume" className="magnetic--quiet">RESUME <MoveRight size={17} /></MagneticButton></div>
+      <div className="hero__actions"><MagneticButton href="#projects" onNavigate={onNavigate}>VIEW PROJECTS <ArrowUpRight size={17} /></MagneticButton><MagneticButton href="#resume" className="magnetic--quiet" onNavigate={onNavigate}>RESUME <MoveRight size={17} /></MagneticButton></div>
     </div>
-    <button className="scroll-cue" onClick={() => scrollToSection('about')}><ChevronDown size={16} /> SCROLL TO DEBUG</button>
+    <button className="scroll-cue" onClick={() => onNavigate('about')}><ChevronDown size={16} /> VIEW ABOUT</button>
   </section>;
 }
 
@@ -310,9 +292,11 @@ function CaseStudy({ project, onClose }) {
 }
 
 function App() {
-  const [loaded, setLoaded] = useState(false); const [openProject, setOpenProject] = useState(null); const reduced = useReducedMotion();
+  const [loaded, setLoaded] = useState(false); const [activeSection, setActiveSection] = useState('home'); const [openProject, setOpenProject] = useState(null); const reduced = useReducedMotion();
   useEffect(() => { document.body.style.overflow = openProject ? 'hidden' : ''; return () => { document.body.style.overflow = ''; }; }, [openProject]);
-  return <><AnimatePresence>{!loaded && <Preloader onDone={() => setLoaded(true)} />}</AnimatePresence><CustomCursor /><main><Nav /><Hero /><About /><Skills /><Projects onOpen={setOpenProject} /><Timeline /><Contact /><Resume /></main><AnimatePresence>{openProject && <CaseStudy project={openProject} onClose={() => setOpenProject(null)} />}</AnimatePresence></>;
+  const navigate = (section) => { setActiveSection(section); window.scrollTo({ top: 0, behavior: 'auto' }); };
+  const section = activeSection === 'home' ? <Hero onNavigate={navigate} /> : activeSection === 'about' ? <About /> : activeSection === 'skills' ? <Skills /> : activeSection === 'projects' ? <Projects onOpen={setOpenProject} /> : activeSection === 'contact' ? <Contact /> : <Resume />;
+  return <><AnimatePresence>{!loaded && <Preloader onDone={() => setLoaded(true)} />}</AnimatePresence><CustomCursor /><Nav active={activeSection} onNavigate={navigate} /><main><AnimatePresence mode="wait"><motion.div key={activeSection} initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: reduced ? 0 : 0.25 }}>{section}</motion.div></AnimatePresence></main><AnimatePresence>{openProject && <CaseStudy project={openProject} onClose={() => setOpenProject(null)} />}</AnimatePresence></>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);
