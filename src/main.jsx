@@ -216,50 +216,58 @@ function ProjectsHeader() {
   const reduced = useReducedMotion();
   const tag = '/ 3D — DESIGNED. DEBUGGED. DEPLOYED.';
   const [typedTag, setTypedTag] = useState(reduced ? tag : '');
-  const [entered, setEntered] = useState(reduced);
+  const [isRevealing, setIsRevealing] = useState(false);
+  const [hasRevealed, setHasRevealed] = useState(reduced);
   const [run, setRun] = useState(0);
 
   useEffect(() => {
     if (reduced) {
       setTypedTag(tag);
-      setEntered(true);
       return undefined;
     }
 
     let timer;
+    let fallbackTimer;
+    const startReveal = () => {
+      window.clearInterval(timer);
+      window.clearTimeout(fallbackTimer);
+      setTypedTag('');
+      setIsRevealing(false);
+      window.requestAnimationFrame(() => {
+        setRun((current) => current + 1);
+        setHasRevealed(true);
+        setIsRevealing(true);
+      });
+      let index = 0;
+      timer = window.setInterval(() => {
+        index += 1;
+        setTypedTag(tag.slice(0, index));
+        if (index === tag.length) window.clearInterval(timer);
+      }, 24);
+      fallbackTimer = window.setTimeout(() => {
+        window.clearInterval(timer);
+        setTypedTag(tag);
+      }, 1200);
+    };
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) {
         window.clearInterval(timer);
         return;
       }
-      window.clearInterval(timer);
-      setEntered(false);
-      setTypedTag('');
-      setRun((current) => current + 1);
-      let index = 0;
-      timer = window.setInterval(() => {
-        index += 1;
-        setTypedTag(tag.slice(0, index));
-        if (index === tag.length) {
-          window.clearInterval(timer);
-          setEntered(true);
-        }
-      }, 24);
+      startReveal();
     }, { threshold: 0.25 });
 
     if (headerRef.current) observer.observe(headerRef.current);
-    return () => { observer.disconnect(); window.clearInterval(timer); };
+    fallbackTimer = window.setTimeout(() => {
+      setTypedTag(tag);
+      setIsRevealing(false);
+    }, 1000);
+    return () => { observer.disconnect(); window.clearInterval(timer); window.clearTimeout(fallbackTimer); };
   }, [reduced]);
 
-  const reveal = (delay) => ({
-    initial: reduced ? { opacity: 0 } : { clipPath: 'inset(0 100% 0 0)' },
-    animate: entered ? (reduced ? { opacity: 1 } : { clipPath: 'inset(0 0 0 0)' }) : {},
-    transition: { duration: reduced ? 0.25 : 0.42, delay: reduced ? 0 : delay },
-  });
-
-  return <div className="projects__header" ref={headerRef}>
+  return <div className={`projects__header ${isRevealing ? 'projects__header--revealing' : ''} ${hasRevealed ? 'projects__header--has-revealed' : ''}`} ref={headerRef}>
     <div className="projects__eyebrow"><span className="projects__pulse" /><span>{typedTag}</span>{!reduced && typedTag.length < tag.length && <i className="projects__cursor" />}</div>
-    <div className="projects__intro"><h2 className="projects__heading" key={run}><motion.span className="projects__line projects__line--designed" {...reveal(0)}>DESIGNED<span className={`projects__status-dot ${entered && !reduced ? 'projects__status-dot--green' : ''}`} aria-hidden="true" /></motion.span><motion.span className="projects__line projects__line--debugged" {...reveal(0.55)}>DEBUGGED<span className={`projects__status-dot ${entered && !reduced ? 'projects__status-dot--amber' : ''}`} aria-hidden="true" /></motion.span><motion.span className="projects__line projects__line--deployed" {...reveal(1.1)}>DEPLOYED<span className={`projects__status-dot ${entered && !reduced ? 'projects__status-dot--cyan' : ''}`} aria-hidden="true" /></motion.span></h2><motion.p key={run} initial={reduced ? { opacity: 0 } : { opacity: 0, y: 18 }} animate={entered ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.35, delay: reduced ? 0 : 1.72 }}>Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways to explore the stack behind each.</motion.p></div>
+    <div className="projects__intro" key={run}><h2 className="projects__heading"><span className="projects__line projects__line--designed">DESIGNED<span className="projects__status-dot projects__status-dot--green" aria-hidden="true" /></span><span className="projects__line projects__line--debugged">DEBUGGED<span className="projects__status-dot projects__status-dot--amber" aria-hidden="true" /></span><span className="projects__line projects__line--deployed">DEPLOYED<span className="projects__status-dot projects__status-dot--cyan" aria-hidden="true" /></span></h2><p>Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways to explore the stack behind each.</p></div>
   </div>;
 }
 
