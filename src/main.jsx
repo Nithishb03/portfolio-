@@ -30,7 +30,7 @@ const projects = [
     problem: 'Students often struggle to find relevant information quickly across large PDFs and study materials. Generic AI responses may also provide answers without being grounded in their actual learning content.',
     solution: 'Built a RAG-based educational assistant that retrieves relevant information from uploaded PDFs before generating answers. Added conversational memory and multimodal capabilities to provide more interactive and context-aware learning support.',
     stack: ['Python', 'Flask', 'LangChain', 'Groq'],
-    github: 'https://github.com/Nithishb03/shiksha-sahayaka-RAG',
+    github: 'https://github.com/Nithishb03/shiksha-sahayaka-RAG-',
   },
   {
     number: '02',
