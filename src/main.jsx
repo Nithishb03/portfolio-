@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { gsap } from 'gsap';
 import emailjs from '@emailjs/browser';
-import { ArrowUpRight, ChevronDown, Mail, MoveRight, Phone, X } from 'lucide-react';
+import { ArrowUpRight, BadgeCheck, BookOpen, ChevronDown, Mail, MapPin, MoveRight, Phone, School, X } from 'lucide-react';
 import { SiGithub, SiLeetcode } from 'react-icons/si';
 import { FaLinkedinIn } from 'react-icons/fa6';
 import './styles.css';
@@ -83,12 +84,11 @@ const projects = [
   },
 ];
 
-const skillGroups = [
-  ['LANGUAGES', 'Python', 'C / C++', 'JavaScript'],
-  ['WEB + API', 'React', 'Tailwind', 'Framer Motion', 'Flask / FastAPI'],
-  ['AI / ML', 'PyTorch', 'RAG', 'FAISS', 'ONNX'],
-  ['SECURITY', 'CTF practice', 'RSA', 'Docker sandboxes', 'ZK-SNARKs'],
-  ['INFRA', 'Git', 'Linux', 'Solidity', 'MATLAB'],
+const skillsData = [
+  { category: 'Programming', skills: ['Python', 'C', 'C++', 'JavaScript', 'SQL'] },
+  { category: 'Web & Backend', skills: ['HTML', 'CSS', 'JavaScript', 'React.js', 'Flask', 'FastAPI', 'REST APIs'] },
+  { category: 'Database & Data', skills: ['MySQL', 'SQLite', 'Redis', 'Git/GitHub'] },
+  { category: 'AI & Machine Learning', skills: ['Python', 'Machine Learning', 'RAG', 'NLP', 'Computer Vision', 'Anomaly Detection', 'Scikit-learn', 'LangChain'] },
 ];
 
 function useReducedMotion() {
@@ -158,8 +158,80 @@ function Nav({ active, onNavigate }) {
   </nav>;
 }
 
+function ResumeDownload() {
+  const reduced = useReducedMotion();
+  const [state, setState] = useState('idle');
+  const [typedCommand, setTypedCommand] = useState('');
+  const [progress, setProgress] = useState(0);
+  const timersRef = useRef([]);
+  const resumeHref = '/Nithish-Resume.txt';
+  const command = '$ curl -O nithish_resume.pdf';
+
+  const clearTimers = () => {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current = [];
+  };
+  const later = (callback, delay) => {
+    const timer = window.setTimeout(callback, delay);
+    timersRef.current.push(timer);
+  };
+  const reset = () => {
+    clearTimers();
+    setState('idle');
+    setTypedCommand('');
+    setProgress(0);
+  };
+
+  useEffect(() => () => clearTimers(), []);
+
+  const triggerDownload = () => {
+    const link = document.createElement('a');
+    link.href = resumeHref;
+    link.download = 'Nithish-Resume.txt';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const handleDownload = () => {
+    if (state !== 'idle') return;
+    // Download is intentionally first: visual effects can fail without blocking it.
+    triggerDownload();
+    clearTimers();
+    if (reduced) {
+      setState('typing');
+      later(() => setState('done'), 140);
+      later(reset, 1640);
+      return;
+    }
+
+    setState('typing');
+    [...command].forEach((_, index) => {
+      later(() => setTypedCommand(command.slice(0, index + 1)), (index + 1) * 35);
+    });
+    const progressStart = command.length * 35 + 200;
+    later(() => setState('progress'), progressStart);
+    [20, 40, 60, 80, 100].forEach((value, index) => {
+      later(() => setProgress(value), progressStart + 120 + index * 150);
+    });
+    later(() => setState('done'), progressStart + 900);
+    // Independent reset fallback, including interrupted timers or render errors.
+    later(reset, progressStart + 2400);
+  };
+
+  const progressBar = `${'■'.repeat(progress / 10)}${'□'.repeat(10 - progress / 10)}`;
+  const primaryText = state === 'idle' ? '$ download resume' : reduced && state === 'typing' ? '$ downloading...' : typedCommand;
+  const secondaryText = state === 'progress' ? `[${progressBar}] ${progress}%` : state === 'done' ? (reduced ? '✓ done' : '✓ resume.pdf saved') : '';
+
+  return <button className={`resume-download resume-download--${state}`} type="button" onClick={handleDownload} disabled={state !== 'idle'} aria-label="Download resume" aria-live="polite">
+    <span className="resume-download__line">{primaryText}{state === 'idle' && <i className="resume-download__cursor" aria-hidden="true" />}</span>
+    <span className="resume-download__line resume-download__result" aria-hidden={!secondaryText}>{secondaryText || '\u00a0'}</span>
+  </button>;
+}
+
 function Resume() {
-  return <section className="resume section-shell" id="resume"><div className="section-tag">/ 005 — HANDOFF</div><div className="resume__layout"><h2>TAKE THE<br /><span className="outline">SOURCE.</span></h2><div><p>One page, no maze. Download the current resume for the fast version of what I build and where I am headed.</p><a className="magnetic resume-download" href="/Nithish-Resume.txt" download="Nithish-Resume.txt">DOWNLOAD RESUME <ArrowUpRight size={17} /></a></div></div></section>;
+  return <section className="resume section-shell" id="resume"><div className="section-tag">/ 005 — HANDOFF</div><div className="resume__layout"><h2>TAKE THE<br /><span className="outline">SOURCE.</span></h2><div><p>One page, no maze. Download the current resume for the fast version of what I build and where I am headed.</p><ResumeDownload /></div></div></section>;
 }
 
 function Hero({ onNavigate }) {
@@ -187,18 +259,100 @@ function Hero({ onNavigate }) {
   </section>;
 }
 
+function AboutPortrait() {
+  const portraitRef = useRef(null);
+  const reduced = useReducedMotion();
+  const [revealing, setRevealing] = useState(false);
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const springX = useSpring(tiltX, { stiffness: 180, damping: 20 });
+  const springY = useSpring(tiltY, { stiffness: 180, damping: 20 });
+
+  useEffect(() => {
+    if (reduced) return undefined;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setRevealing(true); observer.disconnect(); }
+    }, { threshold: 0.2 });
+    if (portraitRef.current) observer.observe(portraitRef.current);
+    return () => observer.disconnect();
+  }, [reduced]);
+
+  const tilt = (event) => {
+    if (event.pointerType !== 'mouse') return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    tiltY.set(((event.clientX - rect.left) / rect.width - .5) * 5);
+    tiltX.set(-((event.clientY - rect.top) / rect.height - .5) * 5);
+  };
+
+  return <div className="about__portrait-wrap">
+    <motion.figure ref={portraitRef} className={`about__portrait ${revealing ? 'about__portrait--revealing' : ''}`} style={{ rotateX: springX, rotateY: springY }} onPointerMove={tilt} onPointerLeave={() => { tiltX.set(0); tiltY.set(0); }}>
+      <span className="about__portrait-glow" aria-hidden="true" />
+      <img src="/nithish-portrait.png" alt="Nithish B" />
+    </motion.figure>
+  </div>;
+}
+
 function About() {
-  return <section className="about section-shell" id="about">
+  const sectionRef = useRef(null);
+  const reduced = useReducedMotion();
+  const [educationVisible, setEducationVisible] = useState(false);
+  const education = [
+    { institution: 'RV College of Engineering, Bengaluru', program: 'BE Computer Science & Engineering (Cyber Security)', details: 'CGPA: 8.73 · Sep 2023 – Jul 2027', mapUrl: 'https://maps.app.goo.gl/bHvs8D4qLv72Nd7t9', icon: BookOpen },
+    { institution: 'Vivekanada PU College', program: 'Pre-University, PCMB', details: '95.66% · 2021 – 2023', mapUrl: 'https://maps.app.goo.gl/pZxjsjz6M8qvKPh66', icon: BadgeCheck },
+    { institution: 'Government High School', program: 'Grade', details: '97.76% · 2011 – 2021', mapUrl: 'https://maps.app.goo.gl/kJXQDag32wJUp7YM7', icon: School },
+  ];
+
+  useEffect(() => {
+    if (reduced) { setEducationVisible(false); return undefined; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setEducationVisible(true); observer.disconnect(); }
+    }, { threshold: 0.18 });
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [reduced]);
+
+  return <section className={`about section-shell ${educationVisible ? 'about--education-visible' : ''}`} id="about" ref={sectionRef}>
     <div className="section-tag">/ 001 — CONTEXT</div>
-    <div className="about__layout"><h2>I like the part where<br /><span className="outline">the pieces talk.</span></h2><div className="about__copy"><p>My work lives in the seams: where a model becomes an API, where a sensor becomes evidence, where cryptography becomes a product decision.</p><p>At RVCE, I am studying Computer Science with an AI/ML focus. Outside the syllabus, I practice CTFs on TryHackMe and HackTheBox because understanding how systems break is a pretty good way to learn how to build them.</p><span className="signature">N / 04:17</span></div></div>
+    <div className="about__layout"><div className="about__title-column"><h2>ABOUT<br /><span className="outline">ME.</span></h2><AboutPortrait /></div><div className="about__copy">
+      <p>I'm Nithish B, a Computer Science and Engineering student specializing in Cyber Security at R.V. College of Engineering, Bengaluru. I'm interested in the intersection of cybersecurity, AI/ML, software engineering, and system design, and I enjoy understanding how systems work beyond just the code that makes them run.</p>
+      <p>For me, learning technology is less about collecting tools and more about understanding why they work, where they break, and how different pieces come together to solve a problem. I enjoy going beyond the "it works" stage—questioning design decisions, exploring edge cases, and thinking about how a system behaves when things don't go as expected.</p>
+      <p>I'm someone who enjoys taking a problem apart, understanding why it exists, and figuring out how to build a practical solution for it. I'm currently focused on strengthening my fundamentals in cybersecurity and software engineering, while continuing to explore how AI can be used to build smarter and more secure systems.</p>
+    </div></div>
+    <div className="about__education"><div className="about__education-label"><i aria-hidden="true" />// Education</div><div className="education-list">
+      {education.map(({ institution, program, details, mapUrl, icon: Icon }, index) => <article className="education-entry" style={{ '--entry-delay': `${index * 120}ms` }} key={institution}>
+        <Icon className="education-entry__icon" size={24} strokeWidth={1.8} aria-hidden="true" /><div className="education-entry__content"><strong>{program}</strong><a className="education-entry__institution" href={mapUrl} target="_blank" rel="noopener noreferrer">{institution}<MapPin size={14} strokeWidth={1.7} aria-hidden="true" /></a><small>{details}</small></div>
+      </article>)}
+    </div></div>
   </section>;
 }
 
 function Skills() {
-  return <section className="skills section-shell" id="skills">
-    <div className="section-tag">/ 002 — LOADOUT</div>
-    <div className="skills__headline"><h2>THE <span className="accent">STACK</span><br />IS A VERB.</h2><p>Tools are only interesting when they compound.</p></div>
-    <div className="marquee" aria-label="Skills"><div className="marquee__track">{[...skillGroups, ...skillGroups].map(([group, ...items], index) => <div className="skill-cluster" key={`${group}-${index}`}><span>{group}</span>{items.map(item => <b key={item}>{item}</b>)}</div>)}</div></div>
+  const sectionRef = useRef(null);
+  const reduced = useReducedMotion();
+  const [entered, setEntered] = useState(false);
+
+  useEffect(() => {
+    if (reduced) { setEntered(false); return undefined; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setEntered(true); observer.disconnect(); }
+    }, { threshold: 0.2 });
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [reduced]);
+
+  return <section className={`skills section-shell ${entered ? 'skills--entered' : ''}`} id="skills" ref={sectionRef}>
+    <div className="section-tag">/ 002 — SKILL INDEX</div>
+    <div className="skills__headline"><h2>TOOLS IN<br /><span className="accent">MOTION.</span></h2><p>A running index of the technologies behind the systems I build.</p></div>
+    <div className="skills__marquees" aria-label="Skills">
+      {skillsData.map(({ category, skills }, index) => <div className={`skills__marquee-row skills__marquee-row--${index % 2 ? 'right' : 'left'}`} style={{ '--marquee-duration': `${26 + index * 3}s`, '--entry-offset': index % 2 ? '42px' : '-42px' }} key={category}>
+        <div className="skills__comment">{`/* ${category} */`}</div>
+        <div className="skills__viewport">
+          <div className="skills__track">
+            {[0, 1].map((copy) => <div className="skills__chip-group" aria-hidden={copy === 1} key={copy}>{skills.map((skill) => <span className="skills__chip" key={`${copy}-${skill}`}>{skill}</span>)}</div>)}
+          </div>
+        </div>
+      </div>)}
+    </div>
   </section>;
 }
 
@@ -213,61 +367,81 @@ function ProjectCard({ project, onOpen }) {
 
 function ProjectsHeader() {
   const headerRef = useRef(null);
+  const designedRef = useRef(null);
+  const debugLineRef = useRef(null);
+  const deployLineRef = useRef(null);
+  const debugStrokeRef = useRef(null);
+  const deployStrokeRef = useRef(null);
+  const copyRef = useRef(null);
   const reduced = useReducedMotion();
   const tag = '/ 3D — DESIGNED. DEBUGGED. DEPLOYED.';
-  const [typedTag, setTypedTag] = useState(reduced ? tag : '');
-  const [isRevealing, setIsRevealing] = useState(false);
-  const [hasRevealed, setHasRevealed] = useState(reduced);
-  const [run, setRun] = useState(0);
+  // The final content is the render default; the timeline only overrides it briefly.
+  const [typedTag, setTypedTag] = useState(tag);
+  const [activeDots, setActiveDots] = useState([]);
 
   useEffect(() => {
     if (reduced) {
       setTypedTag(tag);
+      setActiveDots([]);
       return undefined;
     }
 
-    let timer;
+    let timeline;
     let fallbackTimer;
-    const startReveal = () => {
-      window.clearInterval(timer);
+    let isInside = false;
+    const animatedNodes = () => [designedRef.current, debugLineRef.current, deployLineRef.current, debugStrokeRef.current, deployStrokeRef.current, copyRef.current].filter(Boolean);
+    const restoreFinalState = () => {
       window.clearTimeout(fallbackTimer);
+      timeline?.kill();
+      gsap.set(animatedNodes(), { clearProps: 'all' });
+      setTypedTag(tag);
+    };
+    const startReveal = () => {
+      window.clearTimeout(fallbackTimer);
+      timeline?.kill();
+      gsap.set(animatedNodes(), { clearProps: 'all' });
       setTypedTag('');
-      setIsRevealing(false);
-      window.requestAnimationFrame(() => {
-        setRun((current) => current + 1);
-        setHasRevealed(true);
-        setIsRevealing(true);
-      });
-      let index = 0;
-      timer = window.setInterval(() => {
-        index += 1;
-        setTypedTag(tag.slice(0, index));
-        if (index === tag.length) window.clearInterval(timer);
-      }, 24);
+      setActiveDots([]);
+      const typeProgress = { value: 0 };
+      timeline = gsap.timeline({ defaults: { ease: 'power2.out' }, onComplete: restoreFinalState });
+      timeline
+        .set(designedRef.current, { clipPath: 'inset(0 100% 0 0)', filter: 'drop-shadow(0 0 0 rgba(218,241,222,0))' })
+        .set([debugLineRef.current, deployLineRef.current], { filter: 'drop-shadow(0 0 0 rgba(0,0,0,0))' })
+        .set([debugStrokeRef.current, deployStrokeRef.current], { strokeDasharray: 1200, strokeDashoffset: 1200 })
+        .set(copyRef.current, { autoAlpha: 0, y: 10 })
+        .to(typeProgress, { value: 1, duration: 0.4, ease: 'none', onUpdate: () => setTypedTag(tag.slice(0, Math.round(typeProgress.value * tag.length))) }, 0)
+        .to(designedRef.current, { clipPath: 'inset(0 0% 0 0)', duration: 0.22 }, 0.05)
+        .to(designedRef.current, { filter: 'drop-shadow(0 0 14px rgba(218,241,222,.28))', duration: 0.15 }, 0.27)
+        .call(() => setActiveDots((dots) => [...dots, 'green']), null, 0.27)
+        .to(debugStrokeRef.current, { strokeDashoffset: 0, duration: 0.22 }, 0.39)
+        .to(debugLineRef.current, { filter: 'drop-shadow(0 0 12px rgba(142,182,155,.22))', duration: 0.12 }, 0.61)
+        .call(() => setActiveDots((dots) => [...dots, 'amber']), null, 0.61)
+        .to(deployStrokeRef.current, { strokeDashoffset: 0, duration: 0.22 }, 0.72)
+        .to(deployLineRef.current, { filter: 'drop-shadow(0 0 18px rgba(35,83,71,.5))', duration: 0.12 }, 0.94)
+        .call(() => setActiveDots((dots) => [...dots, 'cyan']), null, 0.94)
+        .to(copyRef.current, { autoAlpha: 1, y: 0, duration: 0.24 }, 1.12);
       fallbackTimer = window.setTimeout(() => {
-        window.clearInterval(timer);
-        setTypedTag(tag);
-      }, 1200);
+        restoreFinalState();
+      }, 1600);
     };
     const observer = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) {
-        window.clearInterval(timer);
+        isInside = false;
         return;
       }
-      startReveal();
+      if (!isInside) {
+        isInside = true;
+        startReveal();
+      }
     }, { threshold: 0.25 });
 
     if (headerRef.current) observer.observe(headerRef.current);
-    fallbackTimer = window.setTimeout(() => {
-      setTypedTag(tag);
-      setIsRevealing(false);
-    }, 1000);
-    return () => { observer.disconnect(); window.clearInterval(timer); window.clearTimeout(fallbackTimer); };
+    return () => { observer.disconnect(); restoreFinalState(); };
   }, [reduced]);
 
-  return <div className={`projects__header ${isRevealing ? 'projects__header--revealing' : ''} ${hasRevealed ? 'projects__header--has-revealed' : ''}`} ref={headerRef}>
+  return <div className="projects__header" ref={headerRef}>
     <div className="projects__eyebrow"><span className="projects__pulse" /><span>{typedTag}</span>{!reduced && typedTag.length < tag.length && <i className="projects__cursor" />}</div>
-    <div className="projects__intro" key={run}><h2 className="projects__heading"><span className="projects__line projects__line--designed">DESIGNED<span className="projects__status-dot projects__status-dot--green" aria-hidden="true" /></span><span className="projects__line projects__line--debugged">DEBUGGED<span className="projects__status-dot projects__status-dot--amber" aria-hidden="true" /></span><span className="projects__line projects__line--deployed">DEPLOYED<span className="projects__status-dot projects__status-dot--cyan" aria-hidden="true" /></span></h2><p>Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways to explore the stack behind each.</p></div>
+    <div className="projects__intro"><h2 className="projects__heading" aria-label="Designed. Debugged. Deployed."><span className="projects__line projects__line--designed" ref={designedRef}>DESIGNED<span className={`projects__status-dot projects__status-dot--green ${activeDots.includes('green') ? 'projects__status-dot--active' : ''}`} aria-hidden="true" /></span><span className="projects__line projects__line--debugged" ref={debugLineRef}><svg className="projects__stroke-word projects__stroke-word--debugged" viewBox="0 0 540 100" role="presentation" aria-hidden="true"><text ref={debugStrokeRef} x="0" y="78">DEBUGGED</text><circle className={`projects__status-dot projects__status-dot--amber ${activeDots.includes('amber') ? 'projects__status-dot--active' : ''}`} cx="510" cy="68" r="7" /></svg></span><span className="projects__line projects__line--deployed" ref={deployLineRef}><svg className="projects__stroke-word projects__stroke-word--deployed" viewBox="0 0 590 100" role="presentation" aria-hidden="true"><text ref={deployStrokeRef} x="0" y="78">DEPLOYED</text><circle className={`projects__status-dot projects__status-dot--cyan ${activeDots.includes('cyan') ? 'projects__status-dot--active' : ''}`} cx="565" cy="68" r="7" /></svg></span></h2><p ref={copyRef}>Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways to explore the stack behind each.</p></div>
   </div>;
 }
 
