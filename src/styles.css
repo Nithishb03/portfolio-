@@ -66,10 +66,6 @@ h2 { margin:0; font-size:clamp(52px,8vw,120px); line-height:.84; letter-spacing:
 .project-card__stack { position:relative; z-index:1; display:flex; flex-wrap:wrap; gap:7px; margin-top:24px; }
 .project-card__stack span { border:1px solid rgba(255,255,255,.16); background:rgba(9,9,11,.5); padding:8px 10px; color:#c8c5bd; font:10px var(--mono); letter-spacing:.02em; }
 .project-card__bottom { position:absolute; bottom:27px; left:27px; right:27px; color:var(--card-accent); }
-.project-card__top .project-card__github { position:static; z-index:2; display:inline-flex; align-items:center; gap:8px; color:var(--muted); font:10px var(--mono); letter-spacing:.08em; transition:color .25s, transform .25s; }
-.project-card__github svg:first-child { color:var(--card-accent); }
-.project-card__github:hover { color:var(--card-accent); transform:translateY(-3px); }
-.project-card__github span { font-size:9px; }
 .projects__github { display:flex; justify-content:center; padding:0 5vw 70px; }
 .projects__github a { display:inline-flex; align-items:center; gap:14px; color:var(--muted); font:11px var(--mono); letter-spacing:.08em; transition:color .25s, transform .25s; }
 .projects__github a:hover { color:var(--acid); transform:translateY(-3px); }

@@ -224,7 +224,7 @@ function ProjectCard({ project, onOpen }) {
   const ref = useRef(null); const rx = useMotionValue(0); const ry = useMotionValue(0); const sx = useSpring(rx, { stiffness: 220, damping: 22 }); const sy = useSpring(ry, { stiffness: 220, damping: 22 });
   const move = (event) => { const rect = ref.current?.getBoundingClientRect(); if (!rect) return; ry.set((event.clientX - rect.left - rect.width / 2) / 18); rx.set(-(event.clientY - rect.top - rect.height / 2) / 18); };
   return <motion.article ref={ref} className="project-card" style={{ rotateX: sx, rotateY: sy, '--card-accent': project.accent }} onMouseMove={move} onMouseLeave={() => { rx.set(0); ry.set(0); }} onClick={() => onOpen(project)} data-cursor>
-    <div className="project-card__noise" /><div className="project-card__top"><span>{project.number}</span><a className="project-card__github" href={project.github} target="_blank" rel="noopener noreferrer" aria-label={`Open ${project.title} on GitHub`} onClick={(event) => event.stopPropagation()}><SiGithub size={19} /><span>GITHUB</span><ArrowUpRight size={14} /></a></div>
+    <div className="project-card__noise" /><div className="project-card__top"><span>{project.number}</span></div>
     <h3>{project.title}</h3><div className="project-card__tagline">{project.tagline || '\u00a0'}</div><p>{project.description}</p><div className="project-card__stack">{project.stack.map((technology) => <span key={technology}>{technology}</span>)}</div>
   </motion.article>;
 }
