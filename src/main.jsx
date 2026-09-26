@@ -41,7 +41,7 @@ const projects = [
     problem: 'Carbon credit verification can suffer from inaccurate sensor data, fraud, and lack of transparency in verification records. Traditional centralized systems make it difficult to independently verify emission data and prevent duplicate or fraudulent claims.',
     solution: 'Built a blockchain-based verification system combining IoT telemetry, AI-based anomaly detection, and smart contracts. Validated telemetry before recording verification results on-chain and enabling transparent carbon-credit settlement.',
     stack: ['React', 'Solidity', 'Ethereum', 'ONNX'],
-    github: 'https://github.com/Nithishb03/carbon-credit',
+    github: 'https://github.com/Nithishb03/carbon-credit-',
   },
   {
     number: '03',
