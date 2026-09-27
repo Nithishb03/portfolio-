@@ -325,7 +325,7 @@ function ResumeDownload() {
   const [typedCommand, setTypedCommand] = useState('');
   const [progress, setProgress] = useState(0);
   const timersRef = useRef([]);
-  const resumeHref = '/NITHISH B(RESUME).pdf';
+  const resumeHref = '/NITHISH_B_RESUME.pdf';
   const command = '$ curl -O NITHISH_B_RESUME.pdf';
 
   const clearTimers = () => {
@@ -345,15 +345,26 @@ function ResumeDownload() {
 
   useEffect(() => () => clearTimers(), []);
 
-  const triggerDownload = () => {
-    const link = document.createElement('a');
-    link.href = resumeHref;
-    link.download = 'NITHISH_B_RESUME.pdf';
-    link.target = '_blank';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+  const triggerDownload = async () => {
+    try {
+      const response = await fetch(resumeHref);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'NITHISH_B_RESUME.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 2000);
+    } catch {
+      const link = document.createElement('a');
+      link.href = resumeHref;
+      link.download = 'NITHISH_B_RESUME.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
   };
 
   const handleDownload = () => {
