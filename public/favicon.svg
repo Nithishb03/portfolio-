@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <circle cx="64" cy="64" r="62" fill="#9DF184"/>
+  <!-- Bold Geometric N -->
+  <path d="M 32 34 L 45 34 L 69 78 L 69 34 L 82 34 L 82 94 L 69 94 L 45 50 L 45 94 L 32 94 Z" fill="#230a42"/>
+  <!-- Accompanying Dot -->
+  <circle cx="91" cy="88" r="6" fill="#000000"/>
+</svg>
