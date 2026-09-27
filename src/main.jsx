@@ -196,7 +196,7 @@ function InteractiveChars({ text, className = '' }) {
 
 function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }) {
   const reduced = useReducedMotion();
-  if (reduced) return <p className={className}>{children}</p>;
+  if (reduced) return <p className={`kinetic-paragraph ${className}`}>{children}</p>;
 
   if (typeof children === 'string') {
     const words = children.split(/\s+/).filter(Boolean);
@@ -205,7 +205,7 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
       visible: {
         opacity: 1,
         transition: {
-          staggerChildren: 0.015,
+          staggerChildren: 0.014,
           delayChildren: delay,
         },
       },
@@ -214,17 +214,15 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
     const wordVariants = {
       hidden: {
         opacity: 0,
-        y: 12,
-        rotateX: 18,
+        y: 10,
         filter: 'blur(3px)',
       },
       visible: {
         opacity: 1,
         y: 0,
-        rotateX: 0,
         filter: 'blur(0px)',
         transition: {
-          duration: 0.45,
+          duration: 0.38,
           ease: [0.16, 1, 0.3, 1],
         },
       },
@@ -237,14 +235,14 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.1 }}
       >
         {words.map((word, index) => (
           <span key={index} className="kinetic-p-word">
             <motion.span className="kinetic-p-word__inner" variants={wordVariants}>
               {word}
             </motion.span>
-            {index < words.length - 1 && <span className="kinetic-p-space"> </span>}
+            {index < words.length - 1 && <span className="kinetic-p-space">&nbsp;</span>}
           </span>
         ))}
       </motion.p>
@@ -255,10 +253,10 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
     <motion.p
       key={retriggerKey}
       className={`kinetic-paragraph ${className}`}
-      initial={{ opacity: 0, y: 18, filter: 'blur(4px)' }}
+      initial={{ opacity: 0, y: 16, filter: 'blur(3px)' }}
       whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.p>
@@ -714,13 +712,13 @@ function About() {
       <div className="about__left">
         <SplitHeading lines={['ABOUT', <span className="outline">ME.</span>]} />
         <div className="about__copy">
-          <AnimatedParagraph delay={0.05}>
+          <AnimatedParagraph delay={0.12}>
             I'm Nithish B, a Computer Science and Engineering student specializing in Cyber Security at R.V. College of Engineering, Bengaluru. I'm interested in the intersection of cybersecurity, AI/ML, software engineering, and system design, and I enjoy understanding how systems work beyond just the code that makes them run.
           </AnimatedParagraph>
-          <AnimatedParagraph delay={0.15}>
+          <AnimatedParagraph delay={0.65}>
             For me, learning technology is less about collecting tools and more about understanding why they work, where they break, and how different pieces come together to solve a problem. I enjoy going beyond the "it works" stage—questioning design decisions, exploring edge cases, and thinking about how a system behaves when things don't go as expected.
           </AnimatedParagraph>
-          <AnimatedParagraph delay={0.25}>
+          <AnimatedParagraph delay={1.18}>
             I'm someone who enjoys taking a problem apart, understanding why it exists, and figuring out how to build a practical solution for it. I'm currently focused on strengthening my fundamentals in cybersecurity and software engineering, while continuing to explore how AI can be used to build smarter and more secure systems.
           </AnimatedParagraph>
         </div>

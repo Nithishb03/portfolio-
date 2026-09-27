@@ -64,6 +64,55 @@ button { color: inherit; font: inherit; }
   overflow: hidden;
   vertical-align: top;
 }
+
+/* Kinetic Typography & Word Unmasking */
+.kinetic-heading {
+  display: block;
+  overflow: visible;
+}
+.kinetic-heading__line {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  line-height: 1.05;
+  padding-bottom: 4px;
+}
+.kinetic-heading__word-wrap {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+.kinetic-heading__word {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+.kinetic-heading__space {
+  display: inline;
+}
+.kinetic-heading__break {
+  display: block;
+}
+
+.kinetic-paragraph {
+  display: block;
+  margin: 0 0 20px 0;
+  line-height: 1.72;
+  color: #c5c1ba;
+  font-size: 16.5px;
+}
+.kinetic-p-word {
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+.kinetic-p-word__inner {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+.kinetic-p-space {
+  display: inline;
+  white-space: normal;
+}
 .text-shimmer {
   background: linear-gradient(
     90deg,
