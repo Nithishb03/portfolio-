@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, MotionConfig, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import emailjs from '@emailjs/browser';
-import { ArrowUpRight, BadgeCheck, BookOpen, ChevronDown, ChevronLeft, ChevronRight, Mail, MapPin, MoveRight, Phone, School, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, BadgeCheck, BookOpen, ChevronDown, ChevronLeft, ChevronRight, Mail, MapPin, MoveRight, Phone, School, X } from 'lucide-react';
 import { SiGithub, SiLeetcode } from 'react-icons/si';
 import { FaLinkedinIn } from 'react-icons/fa6';
 import './styles.css';
@@ -97,44 +97,33 @@ function ScrambleText({ text, className = '', triggerOnHover = true, as = 'span'
 }
 
 function SplitHeading({ lines, className = '', retriggerKey }) {
-  const reduced = useReducedMotion();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05,
-        delayChildren: 0.04,
+        staggerChildren: 0.25,
+        delayChildren: 0.08,
       },
     },
   };
 
-  const wordVariants = {
-    hidden: { y: '115%', opacity: 0, rotateX: 20, filter: 'blur(3px)' },
+  const lineVariants = {
+    hidden: {
+      y: 40,
+      opacity: 0,
+      filter: 'blur(8px)',
+    },
     visible: {
-      y: '0%',
+      y: 0,
       opacity: 1,
-      rotateX: 0,
       filter: 'blur(0px)',
       transition: {
-        duration: 0.58,
+        duration: 0.65,
         ease: [0.16, 1, 0.3, 1],
       },
     },
   };
-
-  if (reduced) {
-    return (
-      <h2 className={className}>
-        {lines.map((line, idx) => (
-          <React.Fragment key={idx}>
-            {line}
-            {idx < lines.length - 1 && <br />}
-          </React.Fragment>
-        ))}
-      </h2>
-    );
-  }
 
   return (
     <motion.h2
@@ -143,37 +132,18 @@ function SplitHeading({ lines, className = '', retriggerKey }) {
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={{ once: true, amount: 0.1 }}
     >
-      {lines.map((line, lineIdx) => {
-        if (typeof line === 'string') {
-          const words = line.split(/\s+/).filter(Boolean);
-          return (
-            <span key={lineIdx} className="kinetic-heading__line">
-              {words.map((word, wordIdx) => (
-                <span key={wordIdx} className="kinetic-heading__word-wrap">
-                  <motion.span className="kinetic-heading__word" variants={wordVariants}>
-                    {word}
-                  </motion.span>
-                  {wordIdx < words.length - 1 && <span className="kinetic-heading__space">&nbsp;</span>}
-                </span>
-              ))}
-              {lineIdx < lines.length - 1 && <span className="kinetic-heading__break" />}
-            </span>
-          );
-        }
-
-        return (
-          <span key={lineIdx} className="kinetic-heading__line">
-            <span className="kinetic-heading__word-wrap">
-              <motion.span className="kinetic-heading__word" variants={wordVariants}>
-                {line}
-              </motion.span>
-            </span>
-            {lineIdx < lines.length - 1 && <span className="kinetic-heading__break" />}
-          </span>
-        );
-      })}
+      {lines.map((line, idx) => (
+        <motion.span
+          key={idx}
+          className="kinetic-heading__line"
+          variants={lineVariants}
+          style={{ display: 'block' }}
+        >
+          {line}
+        </motion.span>
+      ))}
     </motion.h2>
   );
 }
@@ -194,7 +164,7 @@ function InteractiveChars({ text, className = '' }) {
   );
 }
 
-function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }) {
+function AnimatedParagraph({ children, className = '', delay = 0, isTriggered = true, retriggerKey }) {
   const reduced = useReducedMotion();
   if (reduced) return <p className={`kinetic-paragraph ${className}`}>{children}</p>;
 
@@ -205,7 +175,7 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
       visible: {
         opacity: 1,
         transition: {
-          staggerChildren: 0.014,
+          staggerChildren: 0.016,
           delayChildren: delay,
         },
       },
@@ -214,15 +184,15 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
     const wordVariants = {
       hidden: {
         opacity: 0,
-        y: 10,
-        filter: 'blur(3px)',
+        y: 16,
+        filter: 'blur(4px)',
       },
       visible: {
         opacity: 1,
         y: 0,
         filter: 'blur(0px)',
         transition: {
-          duration: 0.38,
+          duration: 0.42,
           ease: [0.16, 1, 0.3, 1],
         },
       },
@@ -234,16 +204,19 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
         className={`kinetic-paragraph ${className}`}
         variants={containerVariants}
         initial="hidden"
-        whileInView="visible"
+        animate={isTriggered ? 'visible' : 'hidden'}
+        whileInView={isTriggered ? undefined : 'visible'}
         viewport={{ once: true, amount: 0.1 }}
       >
         {words.map((word, index) => (
-          <span key={index} className="kinetic-p-word">
-            <motion.span className="kinetic-p-word__inner" variants={wordVariants}>
-              {word}
-            </motion.span>
-            {index < words.length - 1 && <span className="kinetic-p-space">&nbsp;</span>}
-          </span>
+          <React.Fragment key={index}>
+            <span className="kinetic-p-word">
+              <motion.span className="kinetic-p-word__inner" variants={wordVariants}>
+                {word}
+              </motion.span>
+            </span>
+            {index < words.length - 1 && ' '}
+          </React.Fragment>
         ))}
       </motion.p>
     );
@@ -254,7 +227,8 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
       key={retriggerKey}
       className={`kinetic-paragraph ${className}`}
       initial={{ opacity: 0, y: 16, filter: 'blur(3px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      animate={isTriggered ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 16, filter: 'blur(3px)' }}
+      whileInView={isTriggered ? undefined : { opacity: 1, y: 0, filter: 'blur(0px)' }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] }}
     >
@@ -264,15 +238,7 @@ function AnimatedParagraph({ children, className = '', delay = 0, retriggerKey }
 }
 
 function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(media.matches);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
-  }, []);
-  return reduced;
+  return false;
 }
 
 function CustomCursor() {
@@ -653,35 +619,25 @@ function Hero({ onNavigate, isLoaded = true }) {
 }
 
 function AboutPortrait() {
-  const portraitRef = useRef(null);
-  const reduced = useReducedMotion();
-  const [revealing, setRevealing] = useState(false);
-
-  useEffect(() => {
-    if (reduced) {
-      setRevealing(true);
-      return undefined;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setRevealing(true); observer.disconnect(); }
-    }, { threshold: 0.15 });
-    if (portraitRef.current) observer.observe(portraitRef.current);
-    return () => observer.disconnect();
-  }, [reduced]);
-
   return (
     <div className="about__portrait-wrap">
-      <figure ref={portraitRef} className={`about__portrait ${revealing ? 'about__portrait--revealing' : ''}`}>
+      <motion.figure
+        className="about__portrait about__portrait--revealing"
+        initial={{ opacity: 0, y: 35, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+      >
         <span className="about__portrait-glow" aria-hidden="true" />
         <div className="about__portrait-img-box">
           <img
             src="/nithish-portrait.png"
             alt="Nithish B"
             className="about__portrait-img"
-            loading="lazy"
+            loading="eager"
           />
         </div>
-      </figure>
+      </motion.figure>
     </div>
   );
 }
@@ -690,6 +646,7 @@ function About() {
   const sectionRef = useRef(null);
   const reduced = useReducedMotion();
   const [educationVisible, setEducationVisible] = useState(false);
+  const [aboutInView, setAboutInView] = useState(false);
   const education = [
     { institution: 'RV College of Engineering, Bengaluru', program: 'BE Computer Science & Engineering (Cyber Security)', details: 'CGPA: 8.73 · Sep 2023 – Jul 2027', mapUrl: 'https://maps.app.goo.gl/bHvs8D4qLv72Nd7t9', icon: BookOpen },
     { institution: 'Vivekanada PU College', program: 'Pre-University, PCMB', details: '95.66% · 2021 – 2023', mapUrl: 'https://maps.app.goo.gl/pZxjsjz6M8qvKPh66', icon: BadgeCheck },
@@ -697,10 +654,18 @@ function About() {
   ];
 
   useEffect(() => {
-    if (reduced) { setEducationVisible(false); return undefined; }
+    if (reduced) {
+      setAboutInView(true);
+      setEducationVisible(true);
+      return undefined;
+    }
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) { setEducationVisible(true); observer.disconnect(); }
-    }, { threshold: 0.18 });
+      if (entry.isIntersecting) {
+        setAboutInView(true);
+        setEducationVisible(true);
+        observer.disconnect();
+      }
+    }, { threshold: 0.08 });
     if (sectionRef.current) observer.observe(sectionRef.current);
 
     return () => observer.disconnect();
@@ -712,15 +677,33 @@ function About() {
       <div className="about__left">
         <SplitHeading lines={['ABOUT', <span className="outline">ME.</span>]} />
         <div className="about__copy">
-          <AnimatedParagraph delay={0.12}>
+          <motion.p
+            className="about__paragraph"
+            initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
+            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          >
             I'm Nithish B, a Computer Science and Engineering student specializing in Cyber Security at R.V. College of Engineering, Bengaluru. I'm interested in the intersection of cybersecurity, AI/ML, software engineering, and system design, and I enjoy understanding how systems work beyond just the code that makes them run.
-          </AnimatedParagraph>
-          <AnimatedParagraph delay={0.65}>
+          </motion.p>
+          <motion.p
+            className="about__paragraph"
+            initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
+            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.7, delay: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          >
             For me, learning technology is less about collecting tools and more about understanding why they work, where they break, and how different pieces come together to solve a problem. I enjoy going beyond the "it works" stage—questioning design decisions, exploring edge cases, and thinking about how a system behaves when things don't go as expected.
-          </AnimatedParagraph>
-          <AnimatedParagraph delay={1.18}>
+          </motion.p>
+          <motion.p
+            className="about__paragraph"
+            initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
+            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.7, delay: 0.46, ease: [0.16, 1, 0.3, 1] }}
+          >
             I'm someone who enjoys taking a problem apart, understanding why it exists, and figuring out how to build a practical solution for it. I'm currently focused on strengthening my fundamentals in cybersecurity and software engineering, while continuing to explore how AI can be used to build smarter and more secure systems.
-          </AnimatedParagraph>
+          </motion.p>
         </div>
       </div>
       <div className="about__right">
@@ -738,28 +721,42 @@ function About() {
             <motion.article
               className="education-entry"
               key={institution}
-              initial={{ opacity: 0, y: 24, x: -10 }}
-              whileInView={{ opacity: 1, y: 0, x: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.55, delay: index * 0.12, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, y: 28, scale: 0.95 }}
+              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{
+                type: 'spring',
+                stiffness: 260,
+                damping: 22,
+                delay: index * 0.1,
+              }}
+              whileHover={{
+                scale: 1.025,
+                y: -6,
+                transition: { type: 'spring', stiffness: 450, damping: 18 },
+              }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => window.open(mapUrl, '_blank', 'noopener,noreferrer')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  window.open(mapUrl, '_blank', 'noopener,noreferrer');
+                }
+              }}
             >
               <Icon className="education-entry__icon" size={24} strokeWidth={1.8} aria-hidden="true" />
               <div className="education-entry__content">
                 <strong><InteractiveChars text={program} /></strong>
-                <a
-                  className="education-entry__institution"
-                  href={mapUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Open location in Google Maps"
-                >
+                <span className="education-entry__institution">
                   <MapPin size={15} strokeWidth={2} aria-hidden="true" className="education-entry__pin-icon" />
                   <span>{institution}</span>
                   <span className="education-entry__map-badge">
                     <span>Maps</span>
                     <ArrowUpRight size={13} strokeWidth={2.4} aria-hidden="true" />
                   </span>
-                </a>
+                </span>
                 <small><InteractiveChars text={details} /></small>
               </div>
             </motion.article>
@@ -768,10 +765,16 @@ function About() {
 
         <motion.div
           className="about__education-map-card"
-          initial={{ opacity: 0, scale: 0.94 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.2 }}
+          initial={{ opacity: 0, scale: 0.94, y: 25 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{
+            scale: 1.03,
+            y: -6,
+            transition: { type: 'spring', stiffness: 450, damping: 18 },
+          }}
+          whileTap={{ scale: 0.98 }}
         >
           <div className="about__map-visual-wrap">
             <img
@@ -904,154 +907,105 @@ function ProjectCard({ project, onOpen }) {
 }
 
 function ProjectsHeader({ onPrev, onNext }) {
-  const headerRef = useRef(null);
-  const reduced = useReducedMotion();
-  const tag = '/ 3D — DESIGNED. DEBUGGED. DEPLOYED.';
-  const [typedTag, setTypedTag] = useState('');
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    if (reduced) {
-      setTypedTag(tag);
-      setInView(true);
-      return undefined;
-    }
-
-    let timerId;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          setTypedTag('');
-          let charIndex = 0;
-          clearInterval(timerId);
-          timerId = setInterval(() => {
-            charIndex += 1;
-            setTypedTag(tag.slice(0, charIndex));
-            if (charIndex >= tag.length) {
-              clearInterval(timerId);
-            }
-          }, 22);
-        } else {
-          setInView(false);
-          setTypedTag('');
-        }
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.22,
+        delayChildren: 0.08,
       },
-      { threshold: 0.2 }
-    );
-
-    if (headerRef.current) observer.observe(headerRef.current);
-    return () => {
-      observer.disconnect();
-      clearInterval(timerId);
-    };
-  }, [reduced]);
+    },
+  };
 
   const lineVariants = {
-    hidden: { opacity: 0, y: '115%' },
-    visible: (customDelay) => ({
+    hidden: {
+      y: 40,
+      opacity: 0,
+      filter: 'blur(8px)',
+    },
+    visible: {
+      y: 0,
       opacity: 1,
-      y: '0%',
+      filter: 'blur(0px)',
       transition: {
-        duration: 0.6,
-        delay: customDelay,
+        duration: 0.65,
         ease: [0.16, 1, 0.3, 1],
       },
-    }),
+    },
   };
 
   const dotVariants = {
     hidden: { scale: 0, opacity: 0 },
-    visible: (customDelay) => ({
+    visible: {
       scale: 1,
       opacity: 1,
       transition: {
-        duration: 0.32,
-        delay: customDelay + 0.25,
+        duration: 0.35,
+        delay: 0.15,
         ease: [0.175, 0.885, 0.32, 1.275],
       },
-    }),
+    },
   };
 
   return (
-    <div className="projects__header" ref={headerRef}>
-      <div className="projects__eyebrow">
-        <span className="projects__pulse" />
-        <span>{inView ? typedTag : ''}</span>
-        {!reduced && inView && typedTag.length < tag.length && <i className="projects__cursor" />}
-      </div>
+    <div className="projects__header">
+      <div className="section-tag"><ScrambleText text="/ 003 — FEATURED SYSTEMS" /></div>
       <div className="projects__intro">
-        <h2 className="projects__heading" aria-label="Designed. Debugged. Deployed.">
-          <div className="projects__line-mask">
+        <motion.h2
+          className="projects__heading"
+          aria-label="Designed. Debugged. Deployed."
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+        >
+          <motion.span
+            className="projects__line projects__line--designed"
+            variants={lineVariants}
+          >
+            DESIGNED
             <motion.span
-              className="projects__line projects__line--designed"
-              custom={0.1}
-              initial="hidden"
-              animate={inView ? 'visible' : 'hidden'}
-              variants={lineVariants}
-            >
-              DESIGNED
-              <motion.span
-                className="projects__status-dot projects__status-dot--green"
-                custom={0.1}
-                initial="hidden"
-                animate={inView ? 'visible' : 'hidden'}
-                variants={dotVariants}
-                aria-hidden="true"
-              />
-            </motion.span>
-          </div>
+              className="projects__status-dot projects__status-dot--green"
+              variants={dotVariants}
+              aria-hidden="true"
+            />
+          </motion.span>
 
-          <div className="projects__line-mask">
+          <motion.span
+            className="projects__line projects__line--debugged"
+            variants={lineVariants}
+          >
+            DEBUGGED
             <motion.span
-              className="projects__line projects__line--debugged"
-              custom={0.5}
-              initial="hidden"
-              animate={inView ? 'visible' : 'hidden'}
-              variants={lineVariants}
-            >
-              DEBUGGED
-              <motion.span
-                className="projects__status-dot projects__status-dot--amber"
-                custom={0.5}
-                initial="hidden"
-                animate={inView ? 'visible' : 'hidden'}
-                variants={dotVariants}
-                aria-hidden="true"
-              />
-            </motion.span>
-          </div>
+              className="projects__status-dot projects__status-dot--amber"
+              variants={dotVariants}
+              aria-hidden="true"
+            />
+          </motion.span>
 
-          <div className="projects__line-mask">
+          <motion.span
+            className="projects__line projects__line--deployed"
+            variants={lineVariants}
+          >
+            DEPLOYED
             <motion.span
-              className="projects__line projects__line--deployed"
-              custom={0.9}
-              initial="hidden"
-              animate={inView ? 'visible' : 'hidden'}
-              variants={lineVariants}
-            >
-              DEPLOYED
-              <motion.span
-                className="projects__status-dot projects__status-dot--cyan"
-                custom={0.9}
-                initial="hidden"
-                animate={inView ? 'visible' : 'hidden'}
-                variants={dotVariants}
-                aria-hidden="true"
-              />
-            </motion.span>
-          </div>
-        </h2>
+              className="projects__status-dot projects__status-dot--cyan"
+              variants={dotVariants}
+              aria-hidden="true"
+            />
+          </motion.span>
+        </motion.h2>
         <div className="projects__intro-row">
-          <AnimatedParagraph className="projects__intro-copy" delay={1.15}>
+          <p className="projects__intro-copy">
             Six full-stack and AI/ML systems, each one taken from concept to a working product. Drag sideways or use arrows to explore each.
-          </AnimatedParagraph>
+          </p>
           <div className="projects__nav-arrows">
             <button className="projects__nav-btn" onClick={onPrev} aria-label="Previous project" type="button" data-cursor>
-              <ChevronLeft size={18} />
+              <ArrowLeft size={17} />
             </button>
             <button className="projects__nav-btn" onClick={onNext} aria-label="Next project" type="button" data-cursor>
-              <ChevronRight size={18} />
+              <ArrowRight size={17} />
             </button>
           </div>
         </div>
@@ -1198,25 +1152,121 @@ function Contact() {
   };
   return <section className="contact section-shell" id="contact">
     <div className="contact__panels">
-      <div className="contact__form-panel">
+      <motion.div
+        className="contact__form-panel"
+        initial={{ opacity: 0, x: -35 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      >
         <div className="section-tag"><ScrambleText text="/ GET IN TOUCH" /></div>
         <SplitHeading lines={['MAKE THE NEXT', <span className="accent">SIGNAL.</span>]} />
-        <AnimatedParagraph delay={0.08}>
+        <motion.p
+          className="contact__form-intro"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.55, delay: 0.12 }}
+        >
           Have a question, collaboration idea, or project in mind? Drop a message below and I'll receive it directly in my inbox.
-        </AnimatedParagraph>
+        </motion.p>
         <form className="contact-form" onSubmit={submit} noValidate>
-          <label><span>NAME</span><input name="name" value={form.name} onChange={updateField} autoComplete="name" placeholder="Your name" required /></label>
-          <label><span>YOUR EMAIL</span><input type="email" name="email" value={form.email} onChange={updateField} autoComplete="email" placeholder="you@company.com" required /></label>
-          <label><span>SUBJECT</span><input name="subject" value={form.subject} onChange={updateField} placeholder="What are we solving?" required /></label>
-          <label className="contact-form__message"><span>YOUR MESSAGE</span><textarea name="message" value={form.message} onChange={updateField} placeholder="Type your message here..." rows="5" required /></label>
-          <button className="contact-submit magnetic" type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'SENDING…' : status === 'success' ? 'MESSAGE SENT ✓' : 'SEND MESSAGE'} <ArrowUpRight size={17} /></button>
+          <motion.label
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45, delay: 0.18 }}
+          >
+            <span>NAME</span>
+            <input name="name" value={form.name} onChange={updateField} autoComplete="name" placeholder="Your name" required />
+          </motion.label>
+          <motion.label
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45, delay: 0.24 }}
+          >
+            <span>YOUR EMAIL</span>
+            <input type="email" name="email" value={form.email} onChange={updateField} autoComplete="email" placeholder="you@company.com" required />
+          </motion.label>
+          <motion.label
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45, delay: 0.3 }}
+          >
+            <span>SUBJECT</span>
+            <input name="subject" value={form.subject} onChange={updateField} placeholder="What are we solving?" required />
+          </motion.label>
+          <motion.label
+            className="contact-form__message"
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.45, delay: 0.36 }}
+          >
+            <span>YOUR MESSAGE</span>
+            <textarea name="message" value={form.message} onChange={updateField} placeholder="Type your message here..." rows="5" required />
+          </motion.label>
+          <motion.button
+            className="contact-submit magnetic"
+            type="submit"
+            disabled={status === 'sending'}
+            initial={{ opacity: 0, scale: 0.94, y: 15 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.42 }}
+            whileHover={{ scale: 1.03, y: -3, transition: { type: 'spring', stiffness: 450, damping: 16 } }}
+            whileTap={{ scale: 0.97 }}
+          >
+            {status === 'sending' ? 'SENDING…' : status === 'success' ? 'MESSAGE SENT ✓' : 'SEND MESSAGE'} <ArrowUpRight size={17} />
+          </motion.button>
           {status === 'error' && <p className="form-status form-status--error" role="alert">{errorMessage || 'Please fill in all fields before sending.'}</p>}
           {status === 'success' && <p className="form-status form-status--success" role="status">Thanks — your message has been sent successfully!</p>}
         </form>
-      </div>
-      <motion.div className="contact__details-panel" initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.25 }} transition={{ duration: 0.65, staggerChildren: 0.1 }}>
+      </motion.div>
+      <motion.div
+        className="contact__details-panel"
+        initial={{ opacity: 0, x: 35 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      >
         <div className="section-tag"><ScrambleText text="/ DIRECT CHANNELS" /></div>
-        <div className="contact-links">{details.map(({ label, value, href, icon: Icon }, index) => <motion.a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noreferrer' : undefined} className="contact-link" data-cursor initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ delay: index * 0.08, duration: 0.45 }}><span className="contact-link__icon"><Icon size={19} /></span><span><small>{label}</small><strong><InteractiveChars text={value} /></strong></span><ArrowUpRight size={16} className="contact-link__arrow" /></motion.a>)}</div>
+        <div className="contact-links">
+          {details.map(({ label, value, href, icon: Icon }, index) => (
+            <motion.a
+              key={label}
+              href={href}
+              target={href.startsWith('http') ? '_blank' : undefined}
+              rel={href.startsWith('http') ? 'noreferrer' : undefined}
+              className="contact-link"
+              data-cursor
+              initial={{ opacity: 0, x: 26, scale: 0.96 }}
+              whileInView={{ opacity: 1, x: 0, scale: 1 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{
+                type: 'spring',
+                stiffness: 260,
+                damping: 22,
+                delay: index * 0.08 + 0.15,
+              }}
+              whileHover={{
+                scale: 1.025,
+                x: 8,
+                transition: { type: 'spring', stiffness: 450, damping: 18 },
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="contact-link__icon"><Icon size={19} /></span>
+              <span>
+                <small>{label}</small>
+                <strong><InteractiveChars text={value} /></strong>
+              </span>
+              <ArrowUpRight size={16} className="contact-link__arrow" />
+            </motion.a>
+          ))}
+        </div>
       </motion.div>
     </div>
     <footer><span><ScrambleText text="© NITHISH / BUILT WITH INTENT" /></span><div><a href="mailto:nithish7483@gmail.com"><Mail size={16} /> EMAIL</a><a href="https://github.com/Nithishb03" target="_blank" rel="noreferrer"><SiGithub size={16} /> GITHUB</a><a href="https://www.linkedin.com/in/nithishb03/" target="_blank" rel="noreferrer"><FaLinkedinIn size={16} /> LINKEDIN</a></div></footer>
@@ -1419,7 +1469,7 @@ function App() {
   };
 
   return (
-    <>
+    <MotionConfig reducedMotion="never">
       <AnimatePresence>
         {!loaded && <Preloader onDone={() => setLoaded(true)} />}
       </AnimatePresence>
@@ -1437,7 +1487,7 @@ function App() {
       <AnimatePresence>
         {openProject && <CaseStudy project={openProject} onClose={handleCloseProject} />}
       </AnimatePresence>
-    </>
+    </MotionConfig>
   );
 }
 

@@ -1,7 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { useReducedMotion } from 'framer-motion';
 
-export default function HeroConstellation() {
+export default function HeroConstellation({
+  className = '',
+  children,
+  showTag = true,
+  showHUD = false,
+  particleCountMultiplier = 1,
+}) {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const reduced = useReducedMotion();
@@ -41,7 +47,8 @@ export default function HeroConstellation() {
     const initParticles = () => {
       const area = width * height;
       // 40-70 particles depending on container dimensions
-      const count = Math.max(35, Math.min(65, Math.floor(area / 3200)));
+      const baseCount = Math.max(35, Math.min(65, Math.floor(area / 3200)));
+      const count = Math.max(25, Math.floor(baseCount * particleCountMultiplier));
       particles = [];
 
       for (let i = 0; i < count; i += 1) {
@@ -229,14 +236,23 @@ export default function HeroConstellation() {
       container.removeEventListener('pointermove', onPointerMove);
       container.removeEventListener('pointerleave', onPointerLeave);
     };
-  }, [reduced]);
+  }, [reduced, particleCountMultiplier]);
 
   return (
-    <div ref={containerRef} className="hero__constellation-wrap" aria-hidden="true">
+    <div ref={containerRef} className={`hero__constellation-wrap ${className}`} aria-hidden="true">
       <canvas ref={canvasRef} className="hero__constellation-canvas" />
       <div className="hero__constellation-corner hero__constellation-corner--tl" />
       <div className="hero__constellation-corner hero__constellation-corner--br" />
-      <span className="hero__constellation-tag">// NEURAL SIGNAL</span>
+      {showTag && <span className="hero__constellation-tag">// NEURAL SIGNAL</span>}
+      {showHUD && (
+        <div className="hero__constellation-hud">
+          <span className="hero__constellation-hud-status">
+            <i className="hud-pulse" /> ONLINE
+          </span>
+          <span className="hero__constellation-hud-nodes">ACTIVE MESH</span>
+        </div>
+      )}
+      {children}
     </div>
   );
 }

@@ -167,9 +167,11 @@ export default function HeroTerminal({ onNavigate, isLoaded = true, startDelay =
       }
 
       case 'clear':
-        setBootLines([]);
+        setCompletedLines([]);
+        setActiveLineText('');
+        setActiveLineIndex(-1);
         setHistory([]);
-        return null;
+        return [];
 
       default:
         return [
@@ -185,8 +187,14 @@ export default function HeroTerminal({ onNavigate, isLoaded = true, startDelay =
     if (e.key === 'Enter') {
       e.preventDefault();
       const input = currentInput;
-      if (input.trim() === 'clear') {
-        processCommand('clear');
+      if (input.trim().toLowerCase() === 'clear') {
+        setCompletedLines([]);
+        setActiveLineText('');
+        setActiveLineIndex(-1);
+        setHistory([]);
+        if (input.trim()) {
+          setCommandHistory((prev) => [...prev, input.trim()]);
+        }
         setCurrentInput('');
         setHistoryIndex(-1);
         return;
