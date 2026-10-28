@@ -310,6 +310,7 @@ function Nav({ active, onNavigate }) {
       <span className="nav-logo__badge">
         <span className="nav-logo__text">N<span className="nav-logo__dot">.</span></span>
       </span>
+      <span className="nav-logo__name">Nithish</span>
     </button>
     <div className={`nav-links ${menuOpen ? 'nav-links--open' : ''}`}>
       {navItems.map(([id, label]) => <button key={id} className={active === id ? 'nav-link nav-link--active' : 'nav-link'} onClick={() => navigate(id)}>{label}{id === 'resume' && ' ↓'}</button>)}
